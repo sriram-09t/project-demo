@@ -1,0 +1,362 @@
+BFS ALGO
+
+import java.util.*;
+
+class BFS_Algo {
+
+    int a[][] = new int[10][10];
+    int n;
+
+    BFS_Algo(int n) {
+        this.n = n;
+    }
+
+    void edge(int x, int y) {
+        a[x][y] = 1;
+        a[y][x] = 1;
+    }
+
+    void bfs(int start) {
+        int visited[] = new int[n];
+        Queue<Integer> q = new LinkedList<>();
+
+        q.add(start);
+        visited[start] = 1;
+
+        while (!q.isEmpty()) {
+            int x = q.remove();
+            System.out.print(x + " ");
+
+            for (int i = 0; i < n; i++) {
+                if (a[x][i] == 1 && visited[i] == 0) {
+                    q.add(i);
+                    visited[i] = 1;
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+        int e = sc.nextInt();
+
+        BFS_Algo b = new BFS_Algo(n);
+
+        for (int i = 0; i < e; i++)
+            b.edge(sc.nextInt(), sc.nextInt());
+
+        int start = sc.nextInt();
+
+        b.bfs(start);
+    }
+}
+
+
+
+
+
+-------------------------------------------------------------------
+DFS recursion
+
+import java.util.*;
+
+class DFS {
+    int a[][]=new int[10][10],n;
+    boolean v[]=new boolean[10];
+
+    void dfs(int x) {
+        v[x]=true;
+        System.out.print(x+" ");
+
+        for(int i=0;i<n;i++)
+            if(a[x][i]==1&&!v[i])
+                dfs(i);
+    }
+
+    public static void main(String[] z) {
+        Scanner s=new Scanner(System.in);
+        DFS d=new DFS();
+        d.n=s.nextInt();
+        int e=s.nextInt();
+
+        for(int i=0;i<e;i++) {
+            int x=s.nextInt(),y=s.nextInt();
+            d.a[x][y]=d.a[y][x]=1;
+        }
+
+        d.dfs(s.nextInt());
+    }
+}
+
+------------------------------------------------------------------------------
+3. DFS Iteration
+import java.util.*;
+
+class DFS {
+    int a[][]=new int[10][10],n;
+
+    void dfs(int st) {
+        boolean v[]=new boolean[n];
+        Stack<Integer> s=new Stack<>();
+        s.push(st);
+
+        while(!s.empty()) {
+            int x=s.pop();
+
+            if(!v[x]) {
+                v[x]=true;
+                System.out.print(x+" ");
+
+                for(int i=0;i<n;i++)
+                    if(a[x][i]==1&&!v[i])
+                        s.push(i);
+            }
+        }
+    }
+
+    public static void main(String[] z) {
+        Scanner s=new Scanner(System.in);
+        DFS d=new DFS();
+        d.n=s.nextInt();
+        int e=s.nextInt();
+
+        for(int i=0;i<e;i++) {
+            int x=s.nextInt(),y=s.nextInt();
+            d.a[x][y]=d.a[y][x]=1;
+        }
+
+        d.dfs(s.nextInt());
+    }
+}
+---------------------------------------------------------------
+Lonely nodes
+
+import java.util.*;
+
+class Node {
+    int data;
+    Node left,right;
+    Node(int x) {
+        data=x;
+    }
+}
+
+class LonelyNodes {
+    static void bfs(Node root) {
+        if(root==null) return;
+
+        Queue<Node> q=new LinkedList<>();
+        q.add(root);
+
+        while(!q.isEmpty()) {
+            Node x=q.remove();
+
+            if(x.left!=null && x.right==null) {
+                System.out.print(x.left.data+" ");
+                q.add(x.left);
+            }
+            else if(x.left==null && x.right!=null) {
+                System.out.print(x.right.data+" ");
+                q.add(x.right);
+            }
+            else {
+                if(x.left!=null) q.add(x.left);
+                if(x.right!=null) q.add(x.right);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner s=new Scanner(System.in);
+
+        Node root=new Node(1);
+        root.left=new Node(2);
+        root.right=new Node(3);
+        root.left.right=new Node(4);
+        root.right.left=new Node(5);
+
+        bfs(root);
+    }
+}
+-----------------------------------------------------------------------
+import java.util.*;
+
+class Lonely {
+    static class N {
+        int d; N l,r;
+        N(int x){d=x;}
+    }
+
+    public static void main(String[] a) {
+        Scanner s=new Scanner(System.in);
+        N r=new N(s.nextInt());
+        r.l=new N(s.nextInt());
+        r.r=new N(s.nextInt());
+
+        Queue<N> q=new LinkedList<>();
+        q.add(r);
+
+        while(!q.isEmpty()){
+            N x=q.remove();
+            if(x.l!=null&&x.r==null){
+                System.out.print(x.l.d+" ");q.add(x.l);
+            }else if(x.r!=null&&x.l==null){
+                System.out.print(x.r.d+" ");q.add(x.r);
+            }else{
+                if(x.l!=null)q.add(x.l);
+                if(x.r!=null)q.add(x.r);
+            }
+        }
+    }
+}
+------------------------------------------------------------------------------------
+3. Max Area of Island — BFS
+import java.util.*;
+
+class MaxArea {
+    static int a[][],m,n;
+    static int bfs(int r,int c){
+        Queue<int[]>q=new LinkedList<>();
+        q.add(new int[]{r,c});a[r][c]=0;
+        int z=0,d[][]={{1,0},{-1,0},{0,1},{0,-1}};
+        while(!q.isEmpty()){
+            int[]p=q.remove();z++;
+            for(int[]x:d){
+                int i=p[0]+x[0],j=p[1]+x[1];
+                if(i>=0&&j>=0&&i<m&&j<n&&a[i][j]==1){
+                    a[i][j]=0;q.add(new int[]{i,j});
+                }
+            }
+        }
+        return z;
+    }
+    public static void main(String[]x){
+        Scanner s=new Scanner(System.in);
+        m=s.nextInt();n=s.nextInt();a=new int[m][n];
+        for(int i=0;i<m;i++)for(int j=0;j<n;j++)a[i][j]=s.nextInt();
+        int z=0;
+        for(int i=0;i<m;i++)for(int j=0;j<n;j++)
+            if(a[i][j]==1)z=Math.max(z,bfs(i,j));
+        System.out.println(z);
+    }
+}
+----------------------------------------------------------------------------------------------
+4. Number of Distinct Islands — BFS
+
+import java.util.*;
+
+class Distinct {
+    static int a[][],m,n;
+    static String bfs(int r,int c){
+        Queue<int[]>q=new LinkedList<>();
+        q.add(new int[]{r,c});a[r][c]=0;
+        String z="";int d[][]={{1,0},{-1,0},{0,1},{0,-1}};
+        while(!q.isEmpty()){
+            int[]p=q.remove();
+            z+=p[0]-r+""+(p[1]-c);
+            for(int[]x:d){
+                int i=p[0]+x[0],j=p[1]+x[1];
+                if(i>=0&&j>=0&&i<m&&j<n&&a[i][j]==1){
+                    a[i][j]=0;q.add(new int[]{i,j});
+                }
+            }
+        }
+        return z;
+    }
+    public static void main(String[]x){
+        Scanner s=new Scanner(System.in);
+        m=s.nextInt();n=s.nextInt();a=new int[m][n];
+        for(int i=0;i<m;i++)for(int j=0;j<n;j++)a[i][j]=s.nextInt();
+        HashSet<String>h=new HashSet<>();
+        for(int i=0;i<m;i++)for(int j=0;j<n;j++)
+            if(a[i][j]==1)h.add(bfs(i,j));
+        System.out.println(h.size());
+    }
+}
+---------------------------------------------------------------------------------------------------------
+6. DFS — Iteration
+import java.util.*;
+
+class DFS {
+    public static void main(String[]x){
+        Scanner s=new Scanner(System.in);
+        int n=s.nextInt(),e=s.nextInt(),a[][]=new int[n][n];
+        while(e-->0){
+            int i=s.nextInt(),j=s.nextInt();
+            a[i][j]=a[j][i]=1;
+        }
+        boolean v[]=new boolean[n];
+        Stack<Integer>q=new Stack<>();
+        q.push(s.nextInt());
+        while(!q.empty()){
+            int x=q.pop();
+            if(v[x])continue;
+            v[x]=true;System.out.print(x+" ");
+            for(int i=0;i<n;i++)
+                if(a[x][i]==1&&!v[i])q.push(i);
+        }
+    }
+}
+----------------------------------------------------------------------------------------------------------
+7. The Maze — DFS Recursion
+import java.util.*;
+
+class Maze {
+    static int a[][],m,n;static boolean v[][];
+    static boolean dfs(int r,int c,int x,int y){
+        if(r==x&&c==y)
+           return true;
+        if(r<0||c<0||r>=m||c>=n||a[r][c]==1||v[r][c])
+            return false;
+        v[r][c]=true;
+        return dfs(r+1,c,x,y)||dfs(r-1,c,x,y)||
+               dfs(r,c+1,x,y)||dfs(r,c-1,x,y);
+    }
+    public static void main(String[]z){
+        Scanner s=new Scanner(System.in);
+        m=s.nextInt();n=s.nextInt();a=new int[m][n];v=new boolean[m][n];
+        for(int i=0;i<m;i++)
+           for(int j=0;j<n;j++)
+                  a[i][j]=s.nextInt();
+        System.out.println(dfs(s.nextInt(),s.nextInt(),s.nextInt(),s.nextInt()));
+    }
+}
+---------------------------------------------------------------------------------------------------------
+8. Boundary of Binary Tree — DFS
+import java.util.*;
+
+class Boundary {
+    static class N{
+        int d;N l,r;
+        N(int x){d=x;}
+    }
+    static void left(N x){
+        if(x==null||(x.l==null&&x.r==null))return;
+        System.out.print(x.d+" ");
+        left(x.l!=null?x.l:x.r);
+    }
+    static void leaf(N x){
+        if(x==null)return;
+        if(x.l==null&&x.r==null){System.out.print(x.d+" ");return;}
+        leaf(x.l);leaf(x.r);
+    }
+    static void right(N x){
+        if(x==null||(x.l==null&&x.r==null))return;
+        right(x.r!=null?x.r:x.l);
+        System.out.print(x.d+" ");
+    }
+    static void boundary(N x){
+        if(x==null)return;
+        System.out.print(x.d+" ");
+        left(x.l);leaf(x);right(x.r);
+    }
+    public static void main(String[]z){
+        Scanner s=new Scanner(System.in);
+        N r=new N(s.nextInt());
+        r.l=new N(s.nextInt());r.r=new N(s.nextInt());
+        boundary(r);
+    }
+}

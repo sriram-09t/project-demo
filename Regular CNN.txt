@@ -1,0 +1,111 @@
+Regular CNN 
+
+import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.preprocessing import image
+
+# STEP 1: IMPORT LIBRARIES
+print("Libraries Imported Successfully")
+
+# STEP 2: LOAD DATASET
+datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2
+)
+
+train_data = datagen.flow_from_directory(
+    "Flowers",
+    target_size=(128, 128),
+    batch_size=32,
+    class_mode='categorical',
+    subset='training'
+)
+
+val_data = datagen.flow_from_directory(
+    "Flowers",
+    target_size=(128, 128),
+    batch_size=32,
+    class_mode='categorical',
+    subset='validation'
+)
+
+print("Dataset Loaded Successfully")
+
+# STEP 3: DISPLAY SAMPLE IMAGES
+images, labels = next(train_data)
+plt.figure(figsize=(10, 5))
+for i in range(6):
+    plt.subplot(2, 3, i+1)
+    plt.imshow(images[i])
+    plt.axis("off")
+plt.show()
+
+# STEP 4: CHECK CLASS LABELS
+print(train_data.class_indices)
+
+# STEP 5: BUILD CNN MODEL
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 3)),
+    MaxPooling2D(),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D(),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(0.3),
+    Dense(3, activation='softmax')
+])
+
+# STEP 6: VIEW MODEL ARCHITECTURE
+model.summary()
+
+# STEP 7: COMPILE MODEL
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# STEP 8: TRAIN MODEL
+history = model.fit(
+    train_data,
+    validation_data=val_data,
+    epochs=5
+)
+
+# STEP 9: EVALUATE MODEL
+loss, accuracy = model.evaluate(val_data)
+print("Accuracy =", accuracy)
+
+# STEP 10: PLOT ACCURACY CURVE
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title("Accuracy Curve")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.legend(['Training', 'Validation'])
+plt.show()
+
+# STEP 11: PLOT LOSS CURVE
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title("Loss Curve")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.legend(['Training', 'Validation'])
+plt.show()
+
+# STEP 12: PREDICT A NEW IMAGE
+img = image.load_img(
+    "test.jpg",
+    target_size=(128, 128)
+)
+img_array = image.img_to_array(img)
+img_array = img_array / 255.0
+img_array = np.expand_dims(img_array, axis=0)
+
+prediction = model.predict(img_array)
+print(prediction)

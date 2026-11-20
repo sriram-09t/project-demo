@@ -1,0 +1,21 @@
+Tools and dependencies used ( Flask + MongoDB + Vite + React (.tsx))
+
+flask 
+
+Flask-PyMongo: Connects Flask directly to MongoDB using the official, high-performance low-level driver.
+
+MongoEngine: An advanced Object-Document Mapper (similar to SQLAlchemy but for MongoDB) that provides strict schema validation, data types, and built-in models.
+
+Flask-Cors: Handles Cross-Origin Resource Sharing, which is mandatory if your Node.js frontend interacts with your Flask API.
+
+PyJWT: Generates and verifies stateless JSON Web Tokens for secure user authentication.
+
+passlib: Provides industrial-strength password hashing algorithms like bcrypt for user credentials.
+
+python-dotenv: Loads MongoDB connection strings and secret API keys securely from an isolated .env file.
+
+gunicorn: A production-grade WSGI HTTP server designed to handle concurrent live web traffic on Linux deployment environments.
+
+Celery: Offloads long-running tasks (like background data processing or sending emails) so your API stays fast.
+
+redis: Acts as the high-speed message broker and caching layer for Celery

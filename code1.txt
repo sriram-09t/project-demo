@@ -1,0 +1,293 @@
+  const http = require("http");
+  const { ObjectId } = require("mongodb");
+  const { connectDB } = require("./db");
+  const { createSession, requireAuth, requireRole, removeSession } = require("./auth");
+  const { sendJson, readBody } = require("./utils");
+
+  async function main() {
+    const db = await connectDB();
+
+    const server = http.createServer(async (req, res) => {
+      try {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const path = url.pathname;
+        const method = req.method;
+
+        // LOGIN
+        if (method === "POST" && path === "/login") {
+          const { email, password } = await readBody(req);
+
+          if (!email || !password)
+            return sendJson(res, 400, { error: "Email and password are required" });
+
+          const user = await db.collection("users").findOne({ email, password });
+
+          if (!user)
+            return sendJson(res, 401, { error: "Invalid credentials" });
+
+          const sid = createSession(user);
+
+          return sendJson(res, 200, {
+            message: "Login successful",
+            role: user.role,
+            name: user.name
+          }, {
+            "Set-Cookie": `sid=${sid}; HttpOnly; SameSite=Lax; Max-Age=1800; Path=/`
+          });
+        }
+
+        // LOGOUT
+        if (method === "POST" && path === "/logout") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          removeSession(session.sid);
+
+          return sendJson(res, 200, {
+            message: "Logout successful"
+          }, {
+            "Set-Cookie": "sid=; HttpOnly; SameSite=Lax; Max-Age=0; Path=/"
+          });
+        }
+
+        // GET CAMPS
+        if (method === "GET" && path === "/camps") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          const camps = await db.collection("camps")
+            .find()
+            .sort({ date: 1, name: 1 })
+            .toArray();
+
+          return sendJson(res, 200, camps);
+        }
+
+        // CREATE CAMP
+        if (method === "POST" && path === "/camps") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["admin"])) return;
+
+          const { name, date, location } = await readBody(req);
+
+          if (!name || !date || !location)
+            return sendJson(res, 400, { error: "Required fields missing" });
+
+          const result = await db.collection("camps").insertOne({
+            name,
+            date,
+            location,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+
+          return sendJson(res, 201, {
+            message: "Camp created successfully",
+            campId: result.insertedId
+          });
+        }
+
+        // CAMP BY ID
+        if (method === "GET" && /^\/camps\/[^/]+$/.test(path)) {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          const id = path.split("/")[2];
+
+          if (!ObjectId.isValid(id))
+            return sendJson(res, 400, { error: "Invalid camp ID" });
+
+          const camp = await db.collection("camps").findOne({
+            _id: new ObjectId(id)
+          });
+
+          if (!camp)
+            return sendJson(res, 404, { error: "Camp not found" });
+
+          return sendJson(res, 200, camp);
+        }
+
+        // UPDATE CAMP
+        if (method === "PUT" && /^\/camps\/[^/]+$/.test(path)) {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["admin"])) return;
+
+          const id = path.split("/")[2];
+
+          if (!ObjectId.isValid(id))
+            return sendJson(res, 400, { error: "Invalid camp ID" });
+
+          const body = await readBody(req);
+          const update = {};
+
+          if (body.name !== undefined) update.name = body.name;
+          if (body.date !== undefined) update.date = body.date;
+          if (body.location !== undefined) update.location = body.location;
+
+          if (!Object.keys(update).length)
+            return sendJson(res, 400, { error: "No fields to update" });
+
+          update.updatedAt = new Date();
+
+          const result = await db.collection("camps").updateOne(
+            { _id: new ObjectId(id) },
+            { $set: update }
+          );
+
+          if (!result.matchedCount)
+            return sendJson(res, 404, { error: "Camp not found" });
+
+          return sendJson(res, 200, {
+            message: "Camp updated successfully"
+          });
+        }
+
+        // DELETE CAMP
+        if (method === "DELETE" && /^\/camps\/[^/]+$/.test(path)) {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["admin"])) return;
+
+          const id = path.split("/")[2];
+
+          if (!ObjectId.isValid(id))
+            return sendJson(res, 400, { error: "Invalid camp ID" });
+
+          const result = await db.collection("camps").deleteOne({
+            _id: new ObjectId(id)
+          });
+
+          if (!result.deletedCount)
+            return sendJson(res, 404, { error: "Camp not found" });
+
+          return sendJson(res, 200, {
+            message: "Camp deleted successfully"
+          });
+        }
+
+        // CREATE REGISTRATION
+        if (method === "POST" && path === "/registrations") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["donor"])) return;
+
+          const { donorName, campId, bloodGroup, status } =
+            await readBody(req);
+
+          if (!donorName || !campId || !bloodGroup)
+            return sendJson(res, 400, { error: "Required fields missing" });
+
+          if (!ObjectId.isValid(campId))
+            return sendJson(res, 400, { error: "Invalid camp ID" });
+
+          const id = new ObjectId(campId);
+
+          const duplicate = await db.collection("registrations").findOne({
+            donorName,
+            campId: id
+          });
+
+          if (duplicate)
+            return sendJson(res, 409, {
+              error: "Duplicate donor camp registration"
+            });
+
+          const finalStatus =
+            ["eligible", "ineligible", "pending"].includes(status)
+              ? status
+              : "eligible";
+
+          const result = await db.collection("registrations").insertOne({
+            donorName,
+            campId: id,
+            bloodGroup,
+            status: finalStatus,
+            createdAt: new Date()
+          });
+
+          return sendJson(res, 201, {
+            message: "Registration created successfully",
+            registrationId: result.insertedId,
+            status: finalStatus
+          });
+        }
+
+        // ELIGIBLE DONORS
+        if (method === "GET" && path === "/registrations/eligible") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["coordinator"])) return;
+
+          const filter = {
+            status: url.searchParams.get("status") || "eligible"
+          };
+
+          const bloodGroup = url.searchParams.get("bloodGroup");
+
+          if (bloodGroup)
+            filter.bloodGroup = bloodGroup;
+
+          const data = await db.collection("registrations")
+            .find(filter, {
+              projection: {
+                _id: 0,
+                donorName: 1,
+                bloodGroup: 1,
+                status: 1,
+                campId: 1
+              }
+            })
+            .toArray();
+
+          return sendJson(res, 200, data);
+        }
+
+        // BLOOD COUNTS
+        if (method === "GET" && path === "/registrations/blood-counts") {
+          const session = requireAuth(req, res);
+          if (!session) return;
+
+          if (!requireRole(session, res, ["coordinator"])) return;
+
+          const data = await db.collection("registrations")
+            .aggregate([
+              {
+                $group: {
+                  _id: "$bloodGroup",
+                  count: { $sum: 1 }
+                }
+              },
+              {
+                $project: {
+                  _id: 0,
+                  bloodGroup: "$_id",
+                  count: 1
+                }
+              }
+            ])
+            .toArray();
+
+          return sendJson(res, 200, data);
+        }
+
+        sendJson(res, 404, { error: "Route not found" });
+
+      } catch (err) {
+        console.log(err);
+        sendJson(res, 500, { error: "Internal server error" });
+      }
+    });
+
+    server.listen(3000, () => {
+      console.log("Server running at http://localhost:3000");
+    });
+  }
+
+  main();

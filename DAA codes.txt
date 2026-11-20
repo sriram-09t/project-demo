@@ -1,0 +1,944 @@
+PROGRAM6_LIS_7_10
+
+// The Longest Increasing Subsequence (LIS) problem is to find the length of the longest subsequence of a given sequence such that all elements of the subsequence are sorted in increasing order. For example, the length of LIS for {10, 22, 9, 33, 21, 50, 41, 60, 80} is 6 and LIS is {10, 22, 33, 50, 60, 80}. Example-1: Input: arr[] = {5,4,1,2,3} Output: Length of LIS = 3 Explanation: The longest increasing subsequence is 1,2,3 Example-2: Input: arr[] = {7,5} Output: Length of LIS = 1 Explanation: The longest increasing subsequences are {5} or {7}.
+
+// Testcases:
+// case=1
+// input=5 4 1 2 3
+// output=3
+// case=2
+// input=7 5
+// output=1
+
+import java.util.*;
+
+public class LCS {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        ArrayList<Integer> arr = new ArrayList<>();
+        while (sc.hasNextInt()) {
+            arr.add(sc.nextInt());
+        }
+
+        int n = arr.size();
+
+        if (n == 0) {
+            System.out.println(0);
+            return;
+        }
+
+
+        int[] dp = new int[n];
+        Arrays.fill(dp, 1);
+
+        int max = 1;
+
+        for (int i = 1; i < n; i++) {
+            for (int j = 0; j < i; j++) {
+                if (arr.get(i) > arr.get(j)) {
+                    dp[i] = Math.max(dp[i], dp[j] + 1);
+                }
+            }
+
+            max = Math.max(max, dp[i]);
+        }
+
+        System.out.println(max);
+    }
+}
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+PROGRAM5_COUNT_SUB_STRINGS_7_10
+
+// Given a string s, return the number of substrings that have only one distinct letter.
+// Example 1:
+// Input: s = "aaaba"
+// Output: 8
+// Explanation: The substrings with one distinct letter are "aaa", "aa", "a", "b".
+// "aaa" occurs 1 time.
+// "aa" occurs 2 times.
+// "a" occurs 4 times.
+// "b" occurs 1 time.
+// So the answer is 1 + 2 + 4 + 1 = 8.
+// Example 2:
+// Input: s = "aaaaaaaaaa"
+// Output: 55
+
+// Testcases:
+// case=1
+// input=aaaba
+// output=8
+// case=2
+// input=aaaaaaaaaa
+// output=55
+
+import java.util.*;
+public class Count {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String s = sc.nextLine();
+        long count = 0;
+        long consecutive = 1;
+        for (int i = 1; i < s.length(); i++) {
+            if (s.charAt(i) == s.charAt(i - 1)) {
+                consecutive++;
+            } else {
+                count += consecutive * (consecutive + 1) / 2;
+                consecutive = 1;
+            }
+        }
+        count += consecutive * (consecutive + 1) / 2;
+
+        System.out.println(count);
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+PROGRAM4_MAX_SUB_ARRAY_7_10
+
+// Given an integer array nums , find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
+// A subarray is a contiguous part of an array.
+// Example 1:
+// Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
+// Output: 6
+// Explanation: [4,-1,2,1] has the largest sum = 6.
+// Example 2:
+// Input: nums = [1]
+// Output: 1
+// Example 3:
+// Input: nums = [5,4,-1,7,8]
+// Output: 23
+
+// Testcases:
+// case=1
+// input=1
+// 1
+// output=1
+// case=2
+// input=5
+// 5 4 -1 7 8
+// output=23
+
+import java.util.*;
+
+public class Max {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] nums = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            nums[i] = sc.nextInt();
+        }
+
+        int currentSum = nums[0];
+        int maxSum = nums[0];
+
+        for (int i = 1; i < n; i++) {
+            currentSum = Math.max(nums[i], currentSum + nums[i]);
+            maxSum = Math.max(maxSum, currentSum);
+        }
+
+        System.out.println(maxSum);
+    }
+}
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM3_MIN_COST_CLIMB_7_10
+
+// You are given an integer array cost where cost[i] is the cost of i step on a staircase.
+//  Once you pay the cost, you can either climb one or two steps.
+//  You can either start from the step with index 0 , or the step with index 1 .
+//  Return the minimum cost to reach the top of the floor.
+// Example 1:
+// Input: cost = [10,15,20]
+// Output: 15
+// Explanation: You will start at index 1.
+// - Pay 15 and climb two steps to reach the top.
+// The total cost is 15.
+
+// Testcases:
+// case=1
+// input=3
+// 10 15 20
+// output=15
+// case=2
+// input=10
+// 1 100 1 1 1 100 1 1 100 1
+// output=6
+
+import java.util.*;
+
+public class Mincost {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+        int[] cost = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            cost[i] = sc.nextInt();
+        }
+
+        int prev2 = 0;
+        int prev1 = 0;
+
+        for (int i = 2; i <= n; i++) {
+            int current = Math.min(
+                prev1 + cost[i - 1],
+                prev2 + cost[i - 2]
+            );
+
+            prev2 = prev1;
+            prev1 = current;
+        }
+
+        System.out.println(prev1);
+
+        sc.close();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+PROGRAM2_CLIMBLING_STAIRS_7_10
+
+// Given a staircase of N steps and you can either climb 1 or 2 steps at a given time. The task is to return the count of distinct ways to climb to the top. Note: The order of the steps taken matters.
+// Examples: Input: N = 3 Output: 3 Explanation:There are three distinct ways of climbing a staircase of 3 steps : [1, 1, 1], [2, 1] and [1, 2].
+
+// Testcases:
+// case=1
+// input=3
+// output=3
+// case=2
+// input=5
+// output=8
+// case=3
+// input=9
+// output=55
+
+import java.util.*;
+
+public class Climb {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        if (n == 0) {
+            System.out.println(1);
+            return;
+        }
+
+        int a = 1;
+        int b = 1; 
+
+        for (int i = 2; i <= n; i++) {
+            int current = a + b;
+            a = b;
+            b = current;
+        }
+
+        System.out.println(b);
+
+        sc.close();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+
+PROGRAM1_LCS_7_10
+
+// Given two strings text1 and text2 , return the length of their longest common subsequence.
+// A subsequence of a string is a new string generated from the original string with some characters(can be none) deleted without changing the relative order of the remaining characters. (eg, "ace" is a subsequence of "abcde" while "aec" is not). A common subsequence of two strings is a subsequence that is common to both strings.
+// If there is no common subsequence, return 0.
+// Example 1:
+// Input: text1 = "abcde", text2 = "ace"
+// Output: 3
+// Explanation: The longest common subsequence is "ace" and its length is 3.
+// Example 2:
+// Input: text1 = "abc", text2 = "abc"
+// Output: 3
+// Explanation: The longest common subsequence is "abc" and its length is 3.
+// Example 3:
+// Input: text1 = "abc", text2 = "def"
+// Output: 0
+// Explanation: There is no such common subsequence, so the result is 0.
+
+
+// Testcases:
+// case=1
+// input=abcde
+// abcgh
+// output=3
+// case=2
+// input=a
+// b
+// output=0
+// case=3
+// input=ab
+// ab
+// output=2
+
+import java.util.*;
+
+public class LCS {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        String text1 = sc.nextLine();
+        String text2 = sc.nextLine();
+
+        int m = text1.length();
+        int n = text2.length();
+
+        int[][] dp = new int[m + 1][n + 1];
+
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+
+                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+
+        System.out.println(dp[m][n]);
+
+        sc.close();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM1_HAMILTANION_CYCLE_30_9
+
+// The Hamiltonian cycle is the cycle in the graph which visits all the vertices in graph exactly once and terminates at the starting node. 
+// It may not include all the edges
+
+// Testcases:
+// case=1
+// input=5
+// 0 1 0 1 0
+// 1 0 1 1 1
+// 0 1 0 0 1
+// 1 1 0 0 1
+// 0 1 1 1 0
+// output=0 1 2 4 3 0
+// case=2
+// input=5
+// 0 1 0 1 0
+// 1 0 1 1 1
+// 0 1 0 0 1
+// 1 1 0 0 0
+// 0 1 1 0 0
+// output=No Solution
+
+import java.util.*;
+
+public class Hamilt {
+
+    static int n;
+    static int[][] graph;
+    static int[] path;
+    static boolean[] visited;
+
+    static boolean isSafe(int v, int pos) {
+
+        // Check if there is an edge from previous vertex
+        if (graph[path[pos - 1]][v] == 0)
+            return false;
+
+        // Check if vertex is already included
+        if (visited[v])
+            return false;
+
+        return true;
+    }
+
+    static boolean hamiltonianCycle(int pos) {
+
+        // All vertices are included
+        if (pos == n) {
+            // Check if last vertex connects back to first
+            return graph[path[pos - 1]][path[0]] == 1;
+        }
+
+        // Try every vertex
+        for (int v = 1; v < n; v++) {
+
+            if (isSafe(v, pos)) {
+                path[pos] = v;
+                visited[v] = true;
+
+                if (hamiltonianCycle(pos + 1))
+                    return true;
+
+                // Backtrack
+                visited[v] = false;
+                path[pos] = -1;
+            }
+        }
+
+        return false;
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        n = sc.nextInt();
+
+        graph = new int[n][n];
+        path = new int[n];
+        visited = new boolean[n];
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                graph[i][j] = sc.nextInt();
+            }
+        }
+
+        Arrays.fill(path, -1);
+
+        // Start from vertex 0
+        path[0] = 0;
+        visited[0] = true;
+
+        if (hamiltonianCycle(1)) {
+
+            for (int i = 0; i < n; i++) {
+                System.out.print(path[i] + " ");
+            }
+
+            // Return to starting vertex
+            System.out.println(path[0]);
+
+        } else {
+            System.out.println("No Solution");
+        }
+
+        sc.close();
+    }
+}
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM2_ABBREVIATED_26_9
+
+// Write a function to generate the generalized abbreviations of a word.  Note: The order of the output does not matter.  Example:  Input: "word" Output: ["word", "1ord", "w1rd", "wo1d", "wor1", "2rd", "w2d", "wo2", "1o1d", "1or1", "w1r1", "1o2", "2r1", "3d", "w3", "4"]
+// Understanding the problem: 1. You are given a word. 2. You have to generate all abbreviations of that word. For example: Sample Input-> pep Sample Output-> pep pe1 p1p p2 1ep 1e1 2p 3 (in different lines)
+
+// Testcases:
+// case=1
+//  input =kmit
+//  output =[1m1t, 1m2, 1mi1, 1mit, 2i1, 2it, 3t, 4, k1i1, k1it, k2t, k3, km1t, km2, kmi1, kmit]
+//  case=2
+//  input =cse 
+// output =[1s1, 1se, 2e, 3, c1e, c2, cs1, cse]
+//  case=3
+//  input =elite 
+// output =[1l1t1, 1l1te, 1l2e, 1l3, 1li1e, 1li2, 1lit1, 1lite, 2i1e, 2i2, 2it1, 2ite, 3t1, 3te, 4e, 5, e1i1e, e1i2, e1it1, e1ite, e2t1, e2te, e3e, e4, el1t1, el1te, el2e, el3, eli1e, eli2, elit1, elite] 
+// case=4
+//  input =r 
+// output =[1, r]
+
+import java.util.*;
+
+public class Abbr {
+
+    static ArrayList<String> result = new ArrayList<>();
+
+    static void generate(String word, int index, String current, int count) {
+
+        // Base case
+        if (index == word.length()) {
+
+            if (count > 0) {
+                current += count;
+            }
+
+            result.add(current);
+            return;
+        }
+
+        // Option 1: Abbreviate the current character
+        generate(word, index + 1, current, count + 1);
+
+        // Option 2: Keep the current character
+        if (count > 0) {
+            current += count;
+        }
+
+        generate(word, index + 1,
+                 current + word.charAt(index), 0);
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        String word = sc.nextLine().trim();
+
+        // Generate all abbreviations
+        generate(word, 0, "", 0);
+
+        // Sort according to the expected test-case order
+        Collections.sort(result);
+
+       
+        System.out.println(result);
+
+        sc.close();
+    }
+}
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM1_CAMPUS_BIKES_26_9
+
+// On a campus represented as a 2D grid, there are N workers and M bikes, with N <= M. Each worker and bike is a 2D coordinate on this grid.  We assign one unique bike to each worker so that the sum of the Manhattan distances between each worker and their assigned bike is minimized.  The Manhattan distance between two points p1 and p2 is Manhattan(p1, p2) = |p1.x - p2.x| + |p1.y - p2.y|.  Return the minimum possible sum of Manhattan distances between each worker and their assigned bike.
+
+// Testcases:
+// case=1
+// input=3 3 
+// 0 1
+// 1 2 
+// 1 3
+// 4 5
+// 2 5
+// 3 6
+// output=17
+// case=2
+// input=2 2
+// 0 0
+// 2 1
+// 1 2
+// 3 3
+// output=6
+
+import java.util.*;
+
+public class Campus {
+
+    static int n, m;
+    static int[][] workers;
+    static int[][] bikes;
+    static boolean[] used;
+    static int minDistance = Integer.MAX_VALUE;
+
+    static int manhattanDistance(int[] worker, int[] bike) {
+        return Math.abs(worker[0] - bike[0])
+             + Math.abs(worker[1] - bike[1]);
+    }
+
+    static void assignBikes(int workerIndex, int totalDistance) {
+
+        // All workers have been assigned
+        if (workerIndex == n) {
+            minDistance = Math.min(minDistance, totalDistance);
+            return;
+        }
+
+        // Try assigning every unused bike
+        for (int i = 0; i < m; i++) {
+
+            if (!used[i]) {
+
+                int distance = manhattanDistance(
+                    workers[workerIndex],
+                    bikes[i]
+                );
+
+                used[i] = true;
+
+                assignBikes(
+                    workerIndex + 1,
+                    totalDistance + distance
+                );
+
+                // Backtrack
+                used[i] = false;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        n = sc.nextInt();
+        m = sc.nextInt();
+
+        workers = new int[n][2];
+        bikes = new int[m][2];
+        used = new boolean[m];
+
+        // Read workers
+        for (int i = 0; i < n; i++) {
+            workers[i][0] = sc.nextInt();
+            workers[i][1] = sc.nextInt();
+        }
+
+        // Read bikes
+        for (int i = 0; i < m; i++) {
+            bikes[i][0] = sc.nextInt();
+            bikes[i][1] = sc.nextInt();
+        }
+
+        assignBikes(0, 0);
+
+        System.out.println(minDistance);
+
+        sc.close();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM2_GRAY_CODE_24_9
+
+// An n-bit gray code sequence is a sequence of 2n integers where:  Every integer is in the inclusive range [0, 2n - 1], 
+//  The first integer is 0,  An integer appears no more than once in the sequence,  The binary representation of every pair of adjacent integers differs by exactly one bit, and  The binary representation of the first and last integers differs by exactly one bit. Given an integer n, return any valid n-bit gray code sequence.
+// Example 1: Input: n = 2 Output: [0,1,3,2] Explanation: The binary representation of [0,1,3,2] is [00,01,11,10].
+
+// Testcases:
+// case=1
+// input=2
+// output=[0 1 3 2]
+// case=2
+// input=3
+// output=[0 1 3 2 6 7 5 4]
+
+import java.util.*;
+
+public class Gray {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int total = 1 << n;
+
+        ArrayList<Integer> gray = new ArrayList<>();
+
+        for (int i = 0; i < total; i++) {
+            // Gray code formula
+            int code = i ^ (i >> 1);
+            gray.add(code);
+        }
+
+        System.out.print("[");
+
+        for (int i = 0; i < gray.size(); i++) {
+            System.out.print(gray.get(i));
+
+            if (i < gray.size() - 1)
+                System.out.print(" ");
+        }
+
+        System.out.println("]");
+
+        sc.close();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM1_PATH_MAX_GOLD_24_9
+
+//In a gold mine grid of size m x n, each cell in this mine has an integer representing the amount of gold in that cell, 0 if it is empty.
+//Return the maximum amount of gold you can collect under the conditions:  Every time you are located in a cell you will collect all the gold in that cell.  From your position, you can walk one step to the left, right, up, or down.  You can't visit the same cell more than once.  Never visit a cell with 0 gold.  You can start and stop collecting gold from any position in the grid that has some gold. 
+//Example 1: Input: grid = [[0,6,0],[5,8,7],[0,9,0]] Output: 24 Explanation: [[0,6,0], [5,8,7], [0,9,0]] Path to get the maximum gold, 9 -> 8 -> 7.
+//Testcases:
+//case=1
+//input =3 3
+//0 6 0
+//5 8 7
+//0 9 0 
+//output =24
+//case=2
+//input =5 3 
+//1 0 7
+//2 0 6
+//3 4 5
+//0 3 0
+//9 0 20 
+//output =28
+import java.util.*;
+
+public class Max {
+
+    static int m, n;
+    static int[][] grid;
+    static int maxGold = 0;
+
+    static void dfs(int r, int c, int gold) {
+
+        if (r < 0 || r >= m || c < 0 || c >= n || grid[r][c] == 0)
+            return;
+
+        int current = grid[r][c];
+
+        // Mark cell as visited
+        grid[r][c] = 0;
+
+        gold += current;
+
+        maxGold = Math.max(maxGold, gold);
+
+        // Move up, down, left, right
+        dfs(r - 1, c, gold);
+        dfs(r + 1, c, gold);
+        dfs(r, c - 1, gold);
+        dfs(r, c + 1, gold);
+
+        // Backtrack: restore the cell
+        grid[r][c] = current;
+    }
+
+    public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
+        m = sc.nextInt();
+        n = sc.nextInt();
+
+        grid = new int[m][n];
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                grid[i][j] = sc.nextInt();
+            }
+        }
+
+        // Start DFS from every cell containing gold
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] != 0) {
+                    dfs(i, j, 0);
+                }
+            }
+        }
+
+        System.out.println(maxGold);
+    }
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM2_NQUEEN_PROBLEM_23_9
+
+// N Queen problem is the classical Example of backtracking. N-Queen problem is defined as, 
+// “given N x N chess board, arrange N queens in such a way that no two queens attack each other by being in same row, column or diagonal”. 
+// For N = 1, this is trivial case. For N = 2 and N = 3, solution is not possible. So we start with N = 4 and we will generalize it for N queens.
+
+// Testcases:
+// case=1
+// input=1
+// output=
+// 1
+// case=2
+// input=2
+// output=
+// No Solution
+// case=3
+// input=3
+// output=
+// No Solution
+// case=4
+// input=4
+// output=
+// 0010
+// 1000
+// 0001
+// 0100
+// case=5
+// input=5
+// output=
+// 10000
+// 00100
+// 00001
+// 01000
+// 00010
+
+
+import java.util.*;
+public class Nqueen
+{
+int N;
+void printSolution(int board[][])
+{
+for (int i = 0; i < N; i++)
+ {
+for (int j = 0; j < N; j++)
+System.out.print(board[i][j]);
+System.out.println();
+}
+}
+boolean isSafe(int board[][], int row, int col)
+{
+int i, j;
+for (i = 0; i < col; i++)
+if (board[row][i] == 1)
+return false;
+for (i = row, j = col; i >= 0 && j >= 0; i--, j--)
+if (board[i][j] == 1)
+return false;
+for (i = row, j = col; j >= 0 && i < N; i++, j--)
+if (board[i][j] == 1)
+return false;
+return true;
+}
+boolean solveNQUtil(int board[][], int col)
+{
+if (col >= N)
+return true;
+for (int i = 0; i < N; i++)
+{
+  if(isSafe(board, i, col))
+{
+board[i][col] = 1;
+if (solveNQUtil(board, col + 1) == true)
+return true;
+board[i][col] = 0;
+}
+}
+return false;
+}
+boolean solveNQ()
+{
+int board[][] = new int[N][N];
+if (solveNQUtil(board, 0) == false)
+{
+System.out.print("No Solution");
+return false;
+}
+printSolution(board);
+return true;
+}
+public static void main(String args[])
+{
+Scanner sc=new Scanner(System.in);
+Nqueen Queen = new Nqueen();
+Queen.N=sc.nextInt();
+Queen.solveNQ();
+}
+}
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+PROGRAM1_BALANCED_TREE_23_9
+
+// A binary tree is balanced if, for all nodes in the tree, the difference between left and right subtree height is not more than 1. 
+// Check whether the given Binary Tree is a Balanced Binary Tree or not.
+
+// Testcases:
+// case=1
+// input=2 1 1 2 3 3 2
+// output=true
+// case=2
+// input=1 2 3 4 5 -1 -1 6 7
+// output=false
+
+import java.util.*;
+class BinaryTreeNode
+{
+public int data;
+public BinaryTreeNode left, right;
+public BinaryTreeNode(int data)
+ {
+this.data = data;
+left = null;
+right = null;
+}
+}
+class Solution
+{
+public boolean isBalanced(BinaryTreeNode root)
+{
+ if(root == null || root.data==-1)
+ {
+ return true;
+ }
+ return helper(root) != -1;
+ }
+ private int helper(BinaryTreeNode root)
+ {
+ if(root == null || root.data==-1)
+ {
+return 0;
+ }
+ int left = helper(root.left);
+ int right = helper(root.right);
+ if(left == -1 || right == -1 || Math.abs(left - right) > 1)
+ {
+ return -1;
+ }
+ return Math.max(left, right) + 1;
+ }
+}
+public class Balanced
+{
+static BinaryTreeNode root;
+static BinaryTreeNode temp = root;
+void insert(BinaryTreeNode temp, int key)
+ {
+ if (temp == null)
+ {
+ root = new BinaryTreeNode(key);
+ return;
+ }
+ Queue<BinaryTreeNode> q = new LinkedList<BinaryTreeNode>();
+ q.add(temp);
+ // Do level order traversal until we find
+ // an empty place.
+ while (!q.isEmpty()) {
+ temp = q.peek();
+ q.remove();
+ if (temp.left == null)
+ {
+ temp.left = new BinaryTreeNode(key);
+ break;
+ }
+ else
+ q.add(temp.left);
+ if (temp.right == null) {
+ temp.right = new BinaryTreeNode(key);
+ break;
+}
+ else
+ q.add(temp.right);
+ }
+ }
+public static void main(String args[])
+{
+Scanner sc=new Scanner(System.in);
+String str[]=sc.nextLine().split(" ");
+Balanced st=new Balanced();
+root=new BinaryTreeNode(Integer.parseInt(str[0]));
+for(int i=1; i<str.length; i++)
+st.insert(root,Integer.parseInt(str[i]));
+Solution sol= new Solution();
+System.out.println(sol.isBalanced(root));
+}
+}
+
+---------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------

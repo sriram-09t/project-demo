@@ -1,0 +1,1259 @@
+lstm gru rnn
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import SimpleRNN, Dense, Dropout
+from tensorflow.keras.utils import to_categorical
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import classification_report, confusion_matrix
+import time
+
+
+train = pd.read_csv(r"C:\Users\Satvik\Downloads\archive\train.csv")
+test = pd.read_csv(r"C:\Users\Satvik\Downloads\archive\test.csv")
+
+print(train.shape)
+print(test.shape)
+
+
+
+X_train = train.drop(['Activity', 'subject'], axis=1)
+y_train = train['Activity']
+
+X_test = test.drop(['Activity', 'subject'], axis=1)
+y_test = test['Activity']
+
+print(X_train.shape)
+print(X_test.shape)
+
+encoder = LabelEncoder()
+y_train = encoder.fit_transform(y_train)
+y_test = encoder.transform(y_test)
+
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+print("Encoded Labels Shape :", y_train.shape)
+
+
+if isinstance(X_train, pd.DataFrame):
+    X_train = X_train.values
+if isinstance(X_test, pd.DataFrame):
+    X_test = X_test.values
+
+X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
+X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], 1)
+
+print("Training Shape :", X_train.shape)
+print("Testing Shape  :", X_test.shape)
+
+
+model = Sequential([
+    SimpleRNN(128, input_shape=(561, 1)),
+    Dropout(0.2),
+    Dense(32, activation='relu'),
+    Dense(6, activation='softmax')
+])
+
+model.summary()
+
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+start_train = time.time()
+
+history = model.fit(
+    X_train,
+    y_train,
+    epochs=15,
+    batch_size=64,
+    validation_split=0.2
+)
+
+end_train = time.time()
+training_time = end_train - start_train
+
+print(f"\nTotal Training Time : {training_time:.2f} seconds")
+print(f"Avg Time per Epoch  : {training_time/15:.2f} seconds")
+
+
+loss, accuracy = model.evaluate(X_test, y_test)
+
+print("Test Loss :", loss)
+print("Test Accuracy :", accuracy)
+
+
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.title("Training vs Validation Accuracy (SimpleRNN)")
+plt.legend()
+plt.show()
+
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training vs Validation Loss (SimpleRNN)")
+plt.legend()
+plt.show()
+
+start = time.time()
+y_pred = model.predict(X_test)
+end = time.time()
+
+prediction_time = end - start
+
+predicted_classes = np.argmax(y_pred, axis=1)
+true_classes = np.argmax(y_test, axis=1)
+
+print(classification_report(true_classes, predicted_classes))
+print("prediction time taken", prediction_time)
+
+cm = confusion_matrix(true_classes, predicted_classes)
+print(cm)
+
+
+sample = X_test[0].reshape(1, 561, 1)
+prediction = model.predict(sample)
+predicted_class = np.argmax(prediction)
+
+print("Predicted Activity :", encoder.inverse_transform([predicted_class])[0])
+
+sample_number = 48
+sample = X_test[sample_number].reshape(1, 561, 1)
+prediction = model.predict(sample)
+predicted_class = np.argmax(prediction)
+actual_class = np.argmax(y_test[sample_number])
+
+print("Sample Number :", sample_number)
+print("Predicted Activity :", encoder.inverse_transform([predicted_class])[0])
+print("Actual Activity :", encoder.inverse_transform([actual_class])[0])
+
+
+
+convoulutional ae
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D
+
+
+# Load data
+(x_train, _), (x_test, _) = fashion_mnist.load_data()
+
+# Normalize
+x_train = x_train.astype("float32") / 255
+x_test = x_test.astype("float32") / 255
+
+# Reshape
+x_train = x_train.reshape(-1, 28, 28, 1)
+x_test = x_test.reshape(-1, 28, 28, 1)
+
+
+# Autoencoder
+input_img = Input(shape=(28, 28, 1))
+
+# Encoder
+x = Conv2D(32, (3,3), activation="relu", padding="same")(input_img)
+x = MaxPooling2D((2,2), padding="same")(x)
+x = Conv2D(64, (3,3), activation="relu", padding="same")(x)
+encoded = MaxPooling2D((2,2), padding="same")(x)
+
+# Decoder
+x = Conv2D(64, (3,3), activation="relu", padding="same")(encoded)
+x = UpSampling2D((2,2))(x)
+x = Conv2D(32, (3,3), activation="relu", padding="same")(x)
+x = UpSampling2D((2,2))(x)
+decoded = Conv2D(1, (3,3), activation="sigmoid", padding="same")(x)
+
+
+# Model
+model = Model(input_img, decoded)
+
+model.compile(optimizer="adam", loss="mse")
+
+
+# Train
+model.fit(
+    x_train,
+    x_train,
+    epochs=10,
+    batch_size=128,
+    validation_data=(x_test, x_test)
+)
+
+
+# Reconstruct images
+decoded_imgs = model.predict(x_test)
+
+
+# Display
+for i in range(5):
+    plt.subplot(2, 5, i+1)
+    plt.imshow(x_test[i].reshape(28,28), cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(2, 5, i+6)
+    plt.imshow(decoded_imgs[i].reshape(28,28), cmap="gray")
+    plt.axis("off")
+
+plt.show()
+
+
+
+fully connected 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+
+
+# Load data
+(x_train, _), (x_test, _) = mnist.load_data()
+
+
+# Normalize
+x_train = x_train.astype("float32") / 255
+x_test = x_test.astype("float32") / 255
+
+
+# Flatten images
+x_train = x_train.reshape(-1, 784)
+x_test = x_test.reshape(-1, 784)
+
+
+# Encoder
+input_img = Input(shape=(784,))
+
+x = Dense(128, activation="relu")(input_img)
+x = Dense(64, activation="relu")(x)
+
+# Bottleneck
+encoded = Dense(32, activation="relu")(x)
+
+
+# Decoder
+x = Dense(64, activation="relu")(encoded)
+x = Dense(128, activation="relu")(x)
+
+decoded = Dense(784, activation="sigmoid")(x)
+
+
+# Create model
+autoencoder = Model(input_img, decoded)
+
+
+# Compile
+autoencoder.compile(
+    optimizer="adam",
+    loss="mse"
+)
+
+
+# Train
+autoencoder.fit(
+    x_train,
+    x_train,
+    epochs=20,
+    batch_size=256,
+    validation_data=(x_test, x_test)
+)
+
+
+# Predict
+decoded_imgs = autoencoder.predict(x_test)
+
+
+# Display
+for i in range(5):
+
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28), cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(2, 5, i + 6)
+    plt.imshow(decoded_imgs[i].reshape(28, 28), cmap="gray")
+    plt.axis("off")
+
+plt.show()
+
+
+denoising ae
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D
+
+
+# Load data
+(x_train, _), (x_test, _) = mnist.load_data()
+
+
+# Normalize
+x_train = x_train.astype("float32") / 255
+x_test = x_test.astype("float32") / 255
+
+
+# Reshape
+x_train = x_train.reshape(-1, 28, 28, 1)
+x_test = x_test.reshape(-1, 28, 28, 1)
+
+
+# Add Gaussian noise
+noise_factor = 0.5
+
+x_train_noisy = x_train + noise_factor * np.random.normal(
+    0, 1, x_train.shape
+)
+
+x_test_noisy = x_test + noise_factor * np.random.normal(
+    0, 1, x_test.shape
+)
+
+
+# Keep values between 0 and 1
+x_train_noisy = np.clip(x_train_noisy, 0, 1)
+x_test_noisy = np.clip(x_test_noisy, 0, 1)
+
+
+# Autoencoder
+input_img = Input(shape=(28, 28, 1))
+
+
+# Encoder
+x = Conv2D(32, (3,3), activation="relu", padding="same")(input_img)
+x = MaxPooling2D((2,2), padding="same")(x)
+x = Conv2D(64, (3,3), activation="relu", padding="same")(x)
+encoded = MaxPooling2D((2,2), padding="same")(x)
+
+
+# Decoder
+x = Conv2D(64, (3,3), activation="relu", padding="same")(encoded)
+x = UpSampling2D((2,2))(x)
+x = Conv2D(32, (3,3), activation="relu", padding="same")(x)
+x = UpSampling2D((2,2))(x)
+decoded = Conv2D(1, (3,3), activation="sigmoid", padding="same")(x)
+
+
+# Create model
+autoencoder = Model(input_img, decoded)
+
+autoencoder.compile(
+    optimizer="adam",
+    loss="binary_crossentropy"
+)
+
+
+# Train
+autoencoder.fit(
+    x_train_noisy,
+    x_train,
+    epochs=10,
+    batch_size=128,
+    validation_data=(x_test_noisy, x_test)
+)
+
+
+# Predict
+denoised_images = autoencoder.predict(x_test_noisy)
+
+
+# Display
+for i in range(5):
+
+    plt.subplot(3, 5, i + 1)
+    plt.imshow(x_test_noisy[i].reshape(28,28), cmap="gray")
+    plt.title("Noisy")
+    plt.axis("off")
+
+    plt.subplot(3, 5, i + 6)
+    plt.imshow(x_test[i].reshape(28,28), cmap="gray")
+    plt.title("Original")
+    plt.axis("off")
+
+    plt.subplot(3, 5, i + 11)
+    plt.imshow(denoised_images[i].reshape(28,28), cmap="gray")
+    plt.title("Denoised")
+    plt.axis("off")
+
+plt.show()
+
+
+sparse ae 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.regularizers import l1
+
+
+# Load data
+(x_train, _), (x_test, _) = fashion_mnist.load_data()
+
+# Normalize
+x_train = x_train.astype("float32") / 255
+x_test = x_test.astype("float32") / 255
+
+# Flatten
+x_train = x_train.reshape(-1, 784)
+x_test = x_test.reshape(-1, 784)
+
+
+# Sparse Autoencoder
+input_img = Input(shape=(784,))
+
+# Encoder
+x = Dense(128, activation="relu")(input_img)
+x = Dense(64, activation="relu")(x)
+
+# Sparse latent layer
+latent = Dense(
+    32,
+    activation="relu",
+    activity_regularizer=l1(1e-4)
+)(x)
+
+# Decoder
+x = Dense(64, activation="relu")(latent)
+x = Dense(128, activation="relu")(x)
+decoded = Dense(784, activation="sigmoid")(x)
+
+
+# Create model
+model = Model(input_img, decoded)
+
+model.compile(
+    optimizer="adam",
+    loss="mse"
+)
+
+
+# Train
+model.fit(
+    x_train,
+    x_train,
+    epochs=10,
+    batch_size=256,
+    validation_data=(x_test, x_test)
+)
+
+
+# Reconstruct
+reconstructed = model.predict(x_test)
+
+
+# Display
+for i in range(5):
+
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28), cmap="gray")
+    plt.axis("off")
+
+    plt.subplot(2, 5, i + 6)
+    plt.imshow(reconstructed[i].reshape(28, 28), cmap="gray")
+    plt.axis("off")
+
+plt.show()	
+
+
+
+variational ae
+
+# ============================================================
+# EXERCISE 3: VARIATIONAL AUTOENCODER (VAE)
+# Dataset: Fashion-MNIST
+# ============================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.datasets import fashion_mnist
+from tensorflow.keras import layers, Model
+
+
+# ============================================================
+# 1. LOAD DATASET
+# ============================================================
+
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+print("Original Training Shape:", x_train.shape)
+print("Original Testing Shape :", x_test.shape)
+
+
+# ============================================================
+# 2. NORMALIZE
+# ============================================================
+
+x_train = x_train.astype("float32") / 255.0
+x_test = x_test.astype("float32") / 255.0
+
+
+# ============================================================
+# 3. ADD CHANNEL DIMENSION
+# 28 x 28 --> 28 x 28 x 1
+# ============================================================
+
+x_train = np.expand_dims(x_train, axis=-1)
+x_test = np.expand_dims(x_test, axis=-1)
+
+print("Training Shape:", x_train.shape)
+print("Testing Shape :", x_test.shape)
+
+
+# ============================================================
+# 4. VAE PARAMETERS
+# ============================================================
+
+latent_dim = 2
+input_shape = (28, 28, 1)
+
+
+# ============================================================
+# 5. ENCODER
+# ============================================================
+
+encoder_inputs = layers.Input(
+    shape=input_shape,
+    name="encoder_input"
+)
+
+x = layers.Flatten()(encoder_inputs)
+
+x = layers.Dense(
+    256,
+    activation="relu"
+)(x)
+
+x = layers.Dense(
+    128,
+    activation="relu"
+)(x)
+
+
+# Mean of latent distribution
+
+z_mean = layers.Dense(
+    latent_dim,
+    name="z_mean"
+)(x)
+
+
+# Log variance of latent distribution
+
+z_log_var = layers.Dense(
+    latent_dim,
+    name="z_log_var"
+)(x)
+
+
+# ============================================================
+# 6. REPARAMETERIZATION / SAMPLING
+# ============================================================
+
+class Sampling(layers.Layer):
+
+    def call(self, inputs):
+
+        z_mean, z_log_var = inputs
+
+        # Random noise
+        epsilon = tf.random.normal(
+            shape=tf.shape(z_mean)
+        )
+
+        # Reparameterization trick
+        z = (
+            z_mean
+            + tf.exp(0.5 * z_log_var)
+            * epsilon
+        )
+
+        return z
+
+
+z = Sampling(name="sampling")(
+    [z_mean, z_log_var]
+)
+
+
+# ============================================================
+# 7. CREATE ENCODER MODEL
+# ============================================================
+
+encoder = Model(
+    encoder_inputs,
+    [z_mean, z_log_var, z],
+    name="encoder"
+)
+
+print("\n==============================")
+print("ENCODER SUMMARY")
+print("==============================")
+
+encoder.summary()
+
+
+# ============================================================
+# 8. DECODER
+# ============================================================
+
+latent_inputs = layers.Input(
+    shape=(latent_dim,),
+    name="decoder_input"
+)
+
+x = layers.Dense(
+    128,
+    activation="relu"
+)(latent_inputs)
+
+x = layers.Dense(
+    256,
+    activation="relu"
+)(x)
+
+x = layers.Dense(
+    28 * 28,
+    activation="sigmoid"
+)(x)
+
+decoder_outputs = layers.Reshape(
+    (28, 28, 1)
+)(x)
+
+
+# ============================================================
+# 9. CREATE DECODER MODEL
+# ============================================================
+
+decoder = Model(
+    latent_inputs,
+    decoder_outputs,
+    name="decoder"
+)
+
+print("\n==============================")
+print("DECODER SUMMARY")
+print("==============================")
+
+decoder.summary()
+
+
+# ============================================================
+# 10. DEFINE VAE
+# ============================================================
+
+class VAE(Model):
+
+    def __init__(
+        self,
+        encoder,
+        decoder,
+        **kwargs
+    ):
+
+        super().__init__(**kwargs)
+
+        self.encoder = encoder
+        self.decoder = decoder
+
+        # Metrics
+        self.total_loss_tracker = tf.keras.metrics.Mean(
+            name="total_loss"
+        )
+
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(
+            name="reconstruction_loss"
+        )
+
+        self.kl_loss_tracker = tf.keras.metrics.Mean(
+            name="kl_loss"
+        )
+
+
+    # ========================================================
+    # METRICS
+    # ========================================================
+
+    @property
+    def metrics(self):
+
+        return [
+            self.total_loss_tracker,
+            self.reconstruction_loss_tracker,
+            self.kl_loss_tracker
+        ]
+
+
+    # ========================================================
+    # CALL METHOD
+    # Needed by Keras for validation/prediction
+    # ========================================================
+
+    def call(
+        self,
+        inputs,
+        training=False
+    ):
+
+        # Encoder
+        z_mean, z_log_var, z = self.encoder(
+            inputs,
+            training=training
+        )
+
+        # Decoder
+        reconstruction = self.decoder(
+            z,
+            training=training
+        )
+
+        return reconstruction
+
+
+    # ========================================================
+    # TRAINING STEP
+    # ========================================================
+
+    def train_step(self, data):
+
+        # x_train is passed directly
+        if isinstance(data, tuple):
+            data = data[0]
+
+        with tf.GradientTape() as tape:
+
+            # ------------------------------------------------
+            # ENCODER
+            # ------------------------------------------------
+
+            z_mean, z_log_var, z = self.encoder(
+                data,
+                training=True
+            )
+
+            # ------------------------------------------------
+            # DECODER
+            # ------------------------------------------------
+
+            reconstruction = self.decoder(
+                z,
+                training=True
+            )
+
+            # ------------------------------------------------
+            # RECONSTRUCTION LOSS
+            # ------------------------------------------------
+
+            reconstruction_loss = tf.reduce_mean(
+                tf.reduce_sum(
+                    tf.square(
+                        data - reconstruction
+                    ),
+                    axis=(1, 2, 3)
+                )
+            )
+
+            # ------------------------------------------------
+            # KL DIVERGENCE
+            # ------------------------------------------------
+
+            kl_loss = -0.5 * tf.reduce_mean(
+                tf.reduce_sum(
+                    1
+                    + z_log_var
+                    - tf.square(z_mean)
+                    - tf.exp(z_log_var),
+                    axis=1
+                )
+            )
+
+            # ------------------------------------------------
+            # TOTAL LOSS
+            # ------------------------------------------------
+
+            total_loss = (
+                reconstruction_loss
+                + kl_loss
+            )
+
+
+        # ====================================================
+        # BACKPROPAGATION
+        # ====================================================
+
+        grads = tape.gradient(
+            total_loss,
+            self.trainable_weights
+        )
+
+        self.optimizer.apply_gradients(
+            zip(
+                grads,
+                self.trainable_weights
+            )
+        )
+
+
+        # ====================================================
+        # UPDATE METRICS
+        # ====================================================
+
+        self.total_loss_tracker.update_state(
+            total_loss
+        )
+
+        self.reconstruction_loss_tracker.update_state(
+            reconstruction_loss
+        )
+
+        self.kl_loss_tracker.update_state(
+            kl_loss
+        )
+
+        return {
+            "loss":
+                self.total_loss_tracker.result(),
+
+            "reconstruction_loss":
+                self.reconstruction_loss_tracker.result(),
+
+            "kl_loss":
+                self.kl_loss_tracker.result()
+        }
+
+
+    # ========================================================
+    # VALIDATION STEP
+    # ========================================================
+
+    def test_step(self, data):
+
+        if isinstance(data, tuple):
+            data = data[0]
+
+
+        # ----------------------------------------------------
+        # ENCODER
+        # ----------------------------------------------------
+
+        z_mean, z_log_var, z = self.encoder(
+            data,
+            training=False
+        )
+
+
+        # ----------------------------------------------------
+        # DECODER
+        # ----------------------------------------------------
+
+        reconstruction = self.decoder(
+            z,
+            training=False
+        )
+
+
+        # ----------------------------------------------------
+        # RECONSTRUCTION LOSS
+        # ----------------------------------------------------
+
+        reconstruction_loss = tf.reduce_mean(
+            tf.reduce_sum(
+                tf.square(
+                    data - reconstruction
+                ),
+                axis=(1, 2, 3)
+            )
+        )
+
+
+        # ----------------------------------------------------
+        # KL DIVERGENCE
+        # ----------------------------------------------------
+
+        kl_loss = -0.5 * tf.reduce_mean(
+            tf.reduce_sum(
+                1
+                + z_log_var
+                - tf.square(z_mean)
+                - tf.exp(z_log_var),
+                axis=1
+            )
+        )
+
+
+        # ----------------------------------------------------
+        # TOTAL LOSS
+        # ----------------------------------------------------
+
+        total_loss = (
+            reconstruction_loss
+            + kl_loss
+        )
+
+
+        # ----------------------------------------------------
+        # UPDATE METRICS
+        # ----------------------------------------------------
+
+        self.total_loss_tracker.update_state(
+            total_loss
+        )
+
+        self.reconstruction_loss_tracker.update_state(
+            reconstruction_loss
+        )
+
+        self.kl_loss_tracker.update_state(
+            kl_loss
+        )
+
+        return {
+            "loss":
+                self.total_loss_tracker.result(),
+
+            "reconstruction_loss":
+                self.reconstruction_loss_tracker.result(),
+
+            "kl_loss":
+                self.kl_loss_tracker.result()
+        }
+
+
+# ============================================================
+# 11. CREATE VAE MODEL
+# ============================================================
+
+vae = VAE(
+    encoder,
+    decoder,
+    name="fashion_mnist_vae"
+)
+
+
+# ============================================================
+# 12. COMPILE
+# ============================================================
+
+vae.compile(
+    optimizer=tf.keras.optimizers.Adam(
+        learning_rate=0.001
+    )
+)
+
+
+# ============================================================
+# 13. TRAIN
+# ============================================================
+
+print("\n==============================")
+print("TRAINING VAE")
+print("==============================")
+
+history = vae.fit(
+    x_train,
+    epochs=10,
+    batch_size=256,
+    shuffle=True,
+    validation_data=(x_test, None)
+)
+
+
+# ============================================================
+# 14. FINAL RESULTS
+# ============================================================
+
+print("\n==============================")
+print("FINAL RESULTS")
+print("==============================")
+
+print(
+    "Final Training Total Loss:",
+    history.history["loss"][-1]
+)
+
+print(
+    "Final Training Reconstruction Loss:",
+    history.history["reconstruction_loss"][-1]
+)
+
+print(
+    "Final Training KL Loss:",
+    history.history["kl_loss"][-1]
+)
+
+print(
+    "Final Validation Total Loss:",
+    history.history["val_loss"][-1]
+)
+
+print(
+    "Final Validation Reconstruction Loss:",
+    history.history["val_reconstruction_loss"][-1]
+)
+
+print(
+    "Final Validation KL Loss:",
+    history.history["val_kl_loss"][-1]
+)
+
+
+# ============================================================
+# 15. ENCODE TEST IMAGES
+# ============================================================
+
+z_mean_test, z_log_var_test, z_test = encoder.predict(
+    x_test,
+    batch_size=256
+)
+
+
+# ============================================================
+# 16. RECONSTRUCT TEST IMAGES
+# ============================================================
+
+reconstructed_images = decoder.predict(
+    z_test,
+    batch_size=256
+)
+
+
+# ============================================================
+# 17. ORIGINAL VS RECONSTRUCTED
+# ============================================================
+
+n = 10
+
+plt.figure(figsize=(20, 4))
+
+for i in range(n):
+
+    # Original
+    ax = plt.subplot(
+        2,
+        n,
+        i + 1
+    )
+
+    plt.imshow(
+        x_test[i].squeeze(),
+        cmap="gray"
+    )
+
+    plt.title("Original")
+    plt.axis("off")
+
+
+    # Reconstructed
+    ax = plt.subplot(
+        2,
+        n,
+        i + 1 + n
+    )
+
+    plt.imshow(
+        reconstructed_images[i].squeeze(),
+        cmap="gray"
+    )
+
+    plt.title("Reconstructed")
+    plt.axis("off")
+
+
+plt.suptitle(
+    "VAE: Original vs Reconstructed Images"
+)
+
+plt.show()
+
+
+# ============================================================
+# 18. PLOT TOTAL LOSS
+# ============================================================
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(
+    history.history["loss"],
+    label="Training Total Loss"
+)
+
+plt.plot(
+    history.history["val_loss"],
+    label="Validation Total Loss"
+)
+
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+
+plt.title(
+    "VAE Total Loss"
+)
+
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# ============================================================
+# 19. PLOT RECONSTRUCTION LOSS
+# ============================================================
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(
+    history.history["reconstruction_loss"],
+    label="Training Reconstruction Loss"
+)
+
+plt.plot(
+    history.history["val_reconstruction_loss"],
+    label="Validation Reconstruction Loss"
+)
+
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+
+plt.title(
+    "VAE Reconstruction Loss"
+)
+
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# ============================================================
+# 20. PLOT KL DIVERGENCE
+# ============================================================
+
+plt.figure(figsize=(8, 5))
+
+plt.plot(
+    history.history["kl_loss"],
+    label="Training KL Loss"
+)
+
+plt.plot(
+    history.history["val_kl_loss"],
+    label="Validation KL Loss"
+)
+
+plt.xlabel("Epoch")
+plt.ylabel("KL Divergence")
+
+plt.title(
+    "VAE KL Divergence"
+)
+
+plt.legend()
+plt.grid()
+plt.show()
+
+
+# ============================================================
+# 21. VISUALIZE 2-D LATENT SPACE
+# ============================================================
+
+plt.figure(figsize=(8, 6))
+
+scatter = plt.scatter(
+    z_mean_test[:, 0],
+    z_mean_test[:, 1],
+    c=y_test,
+    cmap="tab10",
+    s=3,
+    alpha=0.5
+)
+
+plt.colorbar(
+    scatter,
+    ticks=range(10)
+)
+
+plt.xlabel("Latent Dimension 1")
+plt.ylabel("Latent Dimension 2")
+
+plt.title(
+    "VAE 2-D Latent Space"
+)
+
+plt.grid()
+plt.show()
+
+
+# ============================================================
+# 22. GENERATE NEW IMAGES
+# ============================================================
+
+# Random samples from standard normal distribution
+
+random_latent_vectors = np.random.normal(
+    size=(10, latent_dim)
+).astype("float32")
+
+
+# Decode random latent vectors
+
+generated_images = decoder.predict(
+    random_latent_vectors
+)
+
+
+# ============================================================
+# 23. DISPLAY GENERATED IMAGES
+# ============================================================
+
+plt.figure(figsize=(20, 3))
+
+for i in range(10):
+
+    ax = plt.subplot(
+        1,
+        10,
+        i + 1
+    )
+
+    plt.imshow(
+        generated_images[i].squeeze(),
+        cmap="gray"
+    )
+
+    plt.title("Generated")
+    plt.axis("off")
+
+
+plt.suptitle(
+    "VAE: Newly Generated Fashion Images"
+)
+
+plt.show()
+
+
+# ============================================================
+# 24. DISPLAY RANDOM LATENT POINTS
+# ============================================================
+
+print("\nRandom latent vectors used for generation:")
+
+print(random_latent_vectors)

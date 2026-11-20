@@ -1,0 +1,74 @@
+ENDPOINT (Laptop/IoT Device) — TIER 0: ALWAYS-ON
+
+        ┌────────────────────────────────────┐
+        │  1. Lightweight Collector Agent    │
+        │  (logs+netflow+telemetry, ring buf)│
+        └────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────────────┐
+        │  2. Signature/Rule Agent           │
+        │  (YARA/Suricata-style, local)      │
+        └────────────────────────────────────┘
+                     │
+              match? ──Yes──► ALERT (skip to Agent 5 directly)
+                     │
+                     No
+                     ▼
+        ══════════ compact feature vector only ══════════
+                     │
+                     ▼
+
+LOCAL/EDGE SERVER — TIER 1: TRIGGERED ONLY
+
+        ┌────────────────────────────────────┐
+        │  3. Feature Engineering Agent      │
+        └────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────────────┐
+        │  4. Anomaly Agent (Isolation Forest)│
+        └────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────────────┐
+        │  5. Decision Fusion Agent          │
+        │  (small XGBoost, sig+anomaly score)│
+        └────────────────────────────────────┘
+                     │
+           confidence ≥ threshold?
+                     │
+                    Yes
+                     ▼
+
+CLOUD/SOC BACKEND — TIER 2: ALERT-TRIGGERED ONLY
+
+        ┌────────────────────────────────────┐
+        │  6. Threat Intel + XAI Agent       │
+        │  (SHAP + MITRE ATT&CK + CVE/OTX    │
+        │   lookup, merged single call)      │
+        └────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────────────┐
+        │  7. Response Recommendation Agent  │
+        │  (ATT&CK → NIST 800-61 playbook,   │
+        │   rule-based lookup, O(1))         │
+        └────────────────────────────────────┘
+                     │
+                     ▼
+        ┌────────────────────────────────────┐
+        │  8. Report Generation Agent        │
+        │  (LLM call — only on confirmed     │
+        │   incidents, most gated agent)     │
+        └────────────────────────────────────┘
+                     │
+                     ▼
+
+HUMAN LAYER
+
+        ┌────────────────────────────────────┐
+        │  9. SOC Dashboard + Feedback Agent │
+        │  (analyst approve/reject →         │
+        │   nightly batch retrain of 2 & 4)  │
+        └────────────────────────────────────┘

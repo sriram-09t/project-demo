@@ -1,0 +1,35 @@
+in isopronous transmission
+
+transmission of bits is fixes with eqaual gaps
+
+isopronous transmission is used in audio and video signals
+
+                    Multiplex
+                       /\
+                      /  \
+              [Analog]    [Digital]
+
+
+
+1) frequency division Multiplexing(FDM)
+
+                ________                               __________
+               |        |        Channel 1            |          |
+           ----|        |        Channel 2            |          |------
+      input----|    MUX |---------------------------->|  DEMUX   |------OUTPUT
+      lines----|        |        Channel 3            |          |------lines
+               |________|                             |__________| 
+              v  
+
+
+
+FDM is an analog multiplexing technique that combines analog signals
+
+that means: Bandwidth of input links=combined large bandwidth of signal to be transmitted 
+
+wavelength divison multiplexing 
+
+ 
+synchronous tdm is a technique in which time slot is preassigned to every device 
+
+in synchronous tdm each device is given sone time slot irrespective often that the device contains the data
